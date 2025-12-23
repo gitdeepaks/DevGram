@@ -1,0 +1,17 @@
+{
+	"name": "devgram",
+	"module": "index.js",
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch src/index.js"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"express": "^5.2.1"
+	}
+}
