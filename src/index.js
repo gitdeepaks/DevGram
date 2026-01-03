@@ -1,19 +1,51 @@
+import bcrypt from "bcrypt";
 import express from "express";
 import { connectDB } from "./config/database.js";
 import { User } from "./models/user.model.js";
+import { validateSignUpData } from "./utils/validations.js";
 
 const app = express();
 
 app.use(express.json());
 
 app.post("/singup", async (req, res) => {
-	const newUser = req.body;
-	const user = new User(newUser);
 	try {
+		// validation the data
+		validateSignUpData(req);
+
+		const { firstName, lastName, emailId, password } = req.body;
+
+		// Encrypt the password
+		const passwordHash = await bcrypt.hash(password, 10);
+
+		const user = new User({
+			firstName,
+			lastName,
+			emailId,
+			password: passwordHash,
+		});
 		await user.save();
 		res.status(200).send("user added successfully");
 	} catch (error) {
 		res.status(400).send(`Error in adding user: ${error.message}`);
+	}
+});
+app.post("/login", async (req, res) => {
+	try {
+		const { emailId, password } = req.body;
+		const user = await User.findOne({ emailId: emailId });
+		if (!user) {
+			throw new Error("email or password not valid");
+		}
+
+		const isPasswordValid = bcrypt.compare(password, user.password);
+		if (isPasswordValid) {
+			res.send("Login successful!!!");
+		} else {
+			throw new Error("email or password not valid");
+		}
+	} catch (error) {
+		res.status(400).send(`Email or password is not valid ${error.message}`);
 	}
 });
 // get user by email

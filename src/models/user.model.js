@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
+import validator from "validator";
 
 const userSchema = mongoose.Schema(
 	{
 		firstName: {
 			type: String,
 			required: true,
-			minlength: 4,
+			minlength: 3,
 		},
 		lastName: {
 			type: String,
@@ -16,10 +17,20 @@ const userSchema = mongoose.Schema(
 			required: true,
 			unique: true,
 			trim: true,
+			validate(val) {
+				if (!validator.isEmail(val)) {
+					throw new Error("Invalid email address");
+				}
+			},
 		},
 		password: {
 			type: String,
 			required: true,
+			validate(value) {
+				if (value.length < 8) {
+					throw new Error("Invalid password");
+				}
+			},
 		},
 		age: {
 			type: Number,
@@ -36,6 +47,11 @@ const userSchema = mongoose.Schema(
 		photoUrl: {
 			type: String,
 			default: "https://www.freepik.com/free-photos-vectors/default-user",
+			validate(value) {
+				if (!validator.isURL(value)) {
+					throw new Error("Invalid photoUrl");
+				}
+			},
 		},
 		about: {
 			type: String,
