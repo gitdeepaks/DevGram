@@ -1,3 +1,6 @@
+import jwt from "jsonwebtoken";
+import { User } from "../models/user.model";
+
 export const adminAuth = (req, res, next) => {
 	console.log("Admin auth getting checked");
 
@@ -11,16 +14,28 @@ export const adminAuth = (req, res, next) => {
 		next();
 	}
 };
-export const userAuth = (req, res, next) => {
-	console.log("user auth getting checked");
+export const userAuth = async (req, res, next) => {
+	try {
+		// Try to get token from cookies first (for GET requests), then from body (for POST requests)
+		const token = req.cookies?.authToken || req.body?.token;
 
-	const token = "xyzabcdefghijklmno";
+		if (!token) {
+			return res.status(401).send("No token provided");
+		}
 
-	const isAdminAuthorized = token === "xyzabcdefghijklmno";
+		const decodedObj = await jwt.verify(token, process.env.JWT_SECRET);
 
-	if (isAdminAuthorized) {
-		res.send("All data send");
-	} else {
+		const { userId: _id } = decodedObj;
+
+		const user = await User.findById(_id);
+		if (!user) {
+			return res.status(401).send("User not found");
+		}
+
+		req.user = user;
+
 		next();
+	} catch (error) {
+		res.status(401).send(`User not found: ${error.message}`);
 	}
 };
