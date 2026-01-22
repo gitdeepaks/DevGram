@@ -1,7 +1,7 @@
 import express from "express";
-import { userAuth } from "../middlewares/auth.middleware";
-import { ConnectionRequestModel as ConnectionRequest } from "../models/connectionRequest.model";
-import { User } from "../models/user.model";
+import { userAuth } from "../middlewares/auth.middleware.js";
+import { ConnectionRequestModel as ConnectionRequest } from "../models/connectionRequest.model.js";
+import { User } from "../models/user.model.js";
 
 export const requestRouter = express.Router();
 
