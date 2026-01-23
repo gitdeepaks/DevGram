@@ -62,3 +62,41 @@ requestRouter.post("/request/status/:status/:toUserId", userAuth, async (req, re
 		res.status(400).json({ error: error.message });
 	}
 });
+
+requestRouter.post("/request/review/:status/:requestId", userAuth, async (req, res) => {
+	// validate status
+	// Deepak ==> Elon
+	// status should be interested
+	// loggrdInUser  == toUserId
+	try {
+		const loggedInUser = req.user;
+		const { status, requestId } = req.params;
+
+		const allowedStatus = ["accepted", "rejected"];
+
+		if (!allowedStatus.includes(status)) {
+			return res.status(400).json({ error: `Invalid status: ${status}` });
+		}
+
+		const connectionRequest = await ConnectionRequest.findOne({
+			_id: requestId,
+			toUserId: loggedInUser._id,
+			status: "interested",
+		});
+
+		if (!connectionRequest) {
+			return res.status(400).json({ error: "Connection request not found" });
+		}
+
+		connectionRequest.status = status;
+
+		const data = await connectionRequest.save();
+
+		res.json({
+			message: `${loggedInUser.firstName} has ${status} the connection request`,
+			data: data,
+		});
+	} catch {
+		res.status(400).json({ error: error.message });
+	}
+});
