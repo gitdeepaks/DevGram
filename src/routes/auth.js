@@ -22,10 +22,21 @@ authRouter.post("/singup", async (req, res) => {
 			emailId,
 			password: passwordHash,
 		});
-		await user.save();
-		res.status(200).send("user added successfully");
+		const savedUser = await user.save();
+		const token = savedUser.getJWT();
+		res.cookie("authToken", token, {
+			maxAge: 86400000, // 24 hours
+			httpOnly: true,
+			sameSite: "lax",
+		});
+		res.status(200).json({
+			message: "user added successfully",
+			data: savedUser,
+		});
 	} catch (error) {
-		res.status(400).send(`Error in adding user: ${error.message}`);
+		res.status(400).json({
+			message: `Error in adding user: ${error.message}`,
+		});
 	}
 });
 authRouter.post("/login", async (req, res) => {
@@ -49,7 +60,10 @@ authRouter.post("/login", async (req, res) => {
 				httpOnly: true,
 				sameSite: "lax",
 			});
-			res.send("Login successful!!!");
+			res.status(200).json({
+				message: "Login successful!!!",
+				data: user,
+			});
 		} else {
 			throw new Error("email or password not valid");
 		}

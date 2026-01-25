@@ -1,19 +1,6 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model";
 
-export const adminAuth = (req, res, next) => {
-	console.log("Admin auth getting checked");
-
-	const token = "xyzabcdefghijklmno";
-
-	const isAdminAuthorized = token === "xyzabcdefghijklmno";
-
-	if (isAdminAuthorized) {
-		res.send("All data send");
-	} else {
-		next();
-	}
-};
 export const userAuth = async (req, res, next) => {
 	try {
 		// Try to get token from cookies first (for GET requests), then from body (for POST requests)

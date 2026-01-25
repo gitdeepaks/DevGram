@@ -151,18 +151,31 @@ src/
 
 **Workflow:**
 1. Requires authentication
-2. Validates profile edit data
+2. Validates profile edit data (only allowed fields are accepted)
 3. Updates user fields from request body
 4. Saves updated user to database
 5. Returns updated user data
 
 **Authentication:** Required
 
-**Request Body:** (All fields optional)
+**Allowed Fields:**
+- `firstName` - First name (min 3 characters)
+- `lastName` - Last name
+- `emailId` - Email address (must be valid email, unique)
+- `photoUrl` - Profile photo URL (must be valid URL)
+- `gender` - Gender ("male", "female", or "other")
+- `age` - Age (minimum 18)
+- `about` - About section text
+- `skills` - Array of skill strings
+
+**Note:** `password` cannot be edited through this route. Use `/profile/password` for password changes.
+
+**Request Body:** (All fields optional, but only allowed fields are accepted)
 ```json
 {
   "firstName": "John",
   "lastName": "Doe",
+  "emailId": "john@example.com",
   "age": 26,
   "gender": "male",
   "photoUrl": "https://example.com/photo.jpg",
