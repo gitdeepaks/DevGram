@@ -40,13 +40,15 @@ app.listen(PORT, () => {
 });
 ```
 
-### 1.3 Update CORS Origins (Optional)
+### 1.3 Configure CORS for Your Frontend (Required when frontend is on Vercel)
 
-Add your Railway URL to CORS if your frontend will call it from a different domain:
+The backend reads allowed origins from the `ALLOWED_ORIGINS` environment variable. In Railway **Variables**, add:
 
-```javascript
-origin: ["http://localhost:5173", "http://localhost:5174", "http://devfinderapp.com", "https://your-app.up.railway.app"],
-```
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `ALLOWED_ORIGINS` | Comma-separated frontend URLs that may call this API | `https://your-app.vercel.app` or `https://your-app.vercel.app,https://www.devfinderapp.com` |
+
+Localhost (`http://localhost:5173`, `http://localhost:5174`) is always allowed for local development. Add your **Vercel app URL** (and any custom domains) to `ALLOWED_ORIGINS` so the deployed frontend can communicate with this API without CORS errors.
 
 ---
 
@@ -107,6 +109,7 @@ In your Railway service, go to **Variables** and add:
 | `RAZORPAY_KEY_SECRET` | Razorpay API secret | From Razorpay Dashboard |
 | `RAZORPAY_WEBHOOK_SECRET` | Webhook signature verification | From Razorpay Webhooks settings |
 | `NODE_ENV` | Environment | `production` |
+| `ALLOWED_ORIGINS` | Comma-separated list of frontend origins (e.g. Vercel URL) | `https://your-app.vercel.app` |
 
 If you used Railway MongoDB, you may need to add:
 

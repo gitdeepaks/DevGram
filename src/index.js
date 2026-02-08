@@ -10,10 +10,19 @@ import { userRouter } from "./routes/user.js";
 
 const app = express();
 
+// CORS: localhost for dev; set ALLOWED_ORIGINS in Railway to your Vercel URL (comma-separated for multiple)
+const defaultOrigins = ["http://localhost:5173", "http://localhost:5174"];
+const allowedFromEnv = process.env.ALLOWED_ORIGINS
+	? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean)
+	: [];
+const corsOrigins = [...defaultOrigins, ...allowedFromEnv];
+
 app.use(
 	cors({
-		origin: ["http://localhost:5173", "http://localhost:5174", "http://devfinderapp.com"],
+		origin: corsOrigins,
 		credentials: true,
+		methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+		allowedHeaders: ["Content-Type", "Authorization"],
 	})
 );
 
