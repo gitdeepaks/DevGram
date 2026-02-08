@@ -30,8 +30,9 @@ app.use("/", paymentRouter);
 connectDB()
 	.then(() => {
 		console.log("Datebase connected....");
-		app.listen(4100, () => {
-			console.log("server is running on port:4100");
+		const PORT = process.env.PORT || 4100;
+		app.listen(PORT, () => {
+			console.log(`server is running on port:${PORT}`);
 		});
 	})
 	.catch((err) => console.error(`Database cannot connected: ${err.message}`));
