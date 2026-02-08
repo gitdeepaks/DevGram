@@ -48,6 +48,17 @@ const userSchema = mongoose.Schema(
 			// 	}
 			// },
 		},
+		isPremium: {
+			type: Boolean,
+			default: false,
+		},
+		membershipType: {
+			type: String,
+			enum: { values: ["platinum", "gold", "silver"], message: `Invalid membership type` },
+		},
+		membershipExpiryDate: {
+			type: Date,
+		},
 		photoUrl: {
 			type: String,
 			default: "https://www.freepik.com/free-photos-vectors/default-user",

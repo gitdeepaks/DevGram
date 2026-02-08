@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import { connectDB } from "./config/database.js";
 import { authRouter } from "./routes/auth.js";
+import { paymentRouter } from "./routes/paymant.js";
 import { profileRouter } from "./routes/profile.js";
 import { requestRouter } from "./routes/request.js";
 import { userRouter } from "./routes/user.js";
@@ -11,10 +12,12 @@ const app = express();
 
 app.use(
 	cors({
-		origin: ["http://localhost:5173", "http://localhost:5174"],
+		origin: ["http://localhost:5173", "http://localhost:5174", "http://devfinderapp.com"],
 		credentials: true,
 	})
 );
+
+// cronJob.start();
 
 app.use(express.json());
 app.use(cookieParser());
@@ -23,7 +26,7 @@ app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
-
+app.use("/", paymentRouter);
 connectDB()
 	.then(() => {
 		console.log("Datebase connected....");

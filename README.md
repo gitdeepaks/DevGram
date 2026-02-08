@@ -36,14 +36,19 @@ src/
 │   └── auth.middleware.js    # JWT authentication middleware
 ├── models/
 │   ├── user.model.js         # User schema and model
-│   └── connectionRequest.model.js  # Connection request schema
+│   ├── connectionRequest.model.js  # Connection request schema
+│   └── payment.model.js      # Payment schema and model
 ├── routes/
 │   ├── auth.js              # Authentication routes
 │   ├── profile.js           # User profile routes
 │   ├── request.js           # Connection request routes
-│   └── user.js              # User feed and connections routes
+│   ├── user.js              # User feed and connections routes
+│   └── paymant.js           # Payment routes
 ├── utils/
-│   └── validations.js       # Input validation utilities
+│   ├── validations.js       # Input validation utilities
+│   ├── constants.js         # Application constants (membership types)
+│   ├── payment.js           # Razorpay payment integration
+│   └── cronjob.js           # Scheduled tasks
 └── index.js                 # Application entry point
 ```
 
@@ -425,6 +430,67 @@ POST /request/review/accepted/507f1f77bcf86cd799439011
 - Pending requests (interested)
 - Ignored users (ignored)
 - Rejected requests
+
+---
+
+### 5. Payment Routes (`/routes/paymant.js`)
+
+#### POST `/payment/create`
+**Description:** Create a Razorpay payment order for membership subscription.
+
+**Workflow:**
+1. Requires authentication (userAuth middleware)
+2. Extracts `amount` and `membershipType` from request body
+3. Gets user information from authenticated user (firstName, lastName, emailId)
+4. Creates Razorpay order with amount converted to paise (amount * 100)
+5. Saves payment record to database with membership price from constants
+6. Returns order details and payment record
+
+**Authentication:** Required (JWT token in cookie or body)
+
+**Request Body:**
+```json
+{
+  "amount": 15000,
+  "membershipType": "PLATINUM"
+}
+```
+
+**Parameters:**
+- `amount` (number, required): Amount in INR. Note: This is used for Razorpay order creation, but the actual saved payment amount is determined by `membershipType`.
+- `membershipType` (string, required): Membership tier. Must be one of:
+  - `"PLATINUM"` - ₹15,000
+  - `"GOLD"` - ₹10,000
+  - `"SILVER"` - ₹5,000
+  - Case-insensitive (converted to uppercase internally)
+
+**Response:**
+```json
+{
+  "message": "Order created successfully",
+  "data": {
+    "userId": "...",
+    "orderId": "order_xxxxx",
+    "amount": 1500000,
+    "currency": "INR",
+    "status": "created",
+    "notes": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "emailId": "john@example.com",
+      "membershipType": "PLATINUM"
+    },
+    "receipt": "receipt_order_1",
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+**Error Response:**
+- `500` - Error message if order creation fails
+
+**Note:** The `amount` parameter in the request body is used to create the Razorpay order, but the payment record saved in the database uses the price from `MEMBERSHIP_TYPES[membershipType]` to ensure consistency.
 
 ---
 
