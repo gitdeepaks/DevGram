@@ -38,7 +38,11 @@ paymentRouter.post("/payment/create", userAuth, async (req, res) => {
 		const savedPayment = await payment.save();
 		res.json({
 			message: "Order created successfully",
-			data: { ...savedPayment.toJSON(), orderId: order.id, keyId: process.env.RAZORPAY_KEY_ID },
+			data: {
+				...savedPayment.toJSON(),
+				orderId: order.id,
+				keyId: process.env.RAZORPAY_KEY_ID,
+			},
 		});
 	} catch (error) {
 		res.status(500).send(`Error in creating order: ${error.message}`);
@@ -51,7 +55,7 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
 		const isWebHookValid = Razorpay.validateWebhookSignature(
 			JSON.stringify(req.body),
 			webHookSignature,
-			process.env.RAZORPAY_WEBHOOK_SECRET
+			process.env.RAZORPAY_WEBHOOK_SECRET,
 		);
 
 		if (!isWebHookValid) {
@@ -78,12 +82,28 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
 
 		// return success response
 
-		if (req.body.event === "payment.captured") {
-		}
+		// if (req.body.event === "payment.captured") {
+		// 	await user.save();
+		// }
 
-		if (req.body.event === "payment.failed") {
-		}
+		// if (req.body.event === "payment.failed") {
+		// 	await user.save();
+		// }
 
 		return res.status(200).send("Webhook received successfully");
-	} catch {}
+	} catch (error) {
+		res.status(500).send(`Error in webhook: ${error.message}`);
+	}
+});
+
+paymentRouter.get("/premium/verify", userAuth, async (req, res) => {
+	try {
+		const user = req.user;
+		if (user.isPremium) {
+			return res.status(200).send("User is premium");
+		}
+		return res.status(401).send("User is not premium");
+	} catch (error) {
+		res.status(500).send(`Error in premium verify: ${error.message}`);
+	}
 });

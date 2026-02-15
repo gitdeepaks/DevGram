@@ -24,10 +24,12 @@ authRouter.post("/singup", async (req, res) => {
 		});
 		const savedUser = await user.save();
 		const token = savedUser.getJWT();
+		const isProduction = process.env.NODE_ENV === "production";
 		res.cookie("authToken", token, {
 			maxAge: 86400000, // 24 hours
 			httpOnly: true,
-			sameSite: "lax",
+			sameSite: isProduction ? "none" : "lax",
+			secure: isProduction,
 		});
 		res.status(200).json({
 			message: "user added successfully",
@@ -55,10 +57,12 @@ authRouter.post("/login", async (req, res) => {
 			// console.log(token);
 
 			// Add a token to cookie and send the response to the user.
+			const isProduction = process.env.NODE_ENV === "production";
 			res.cookie("authToken", token, {
 				maxAge: 86400000, // 24 hours
 				httpOnly: true,
-				sameSite: "lax",
+				sameSite: isProduction ? "none" : "lax",
+				secure: isProduction,
 			});
 			res.status(200).json({
 				message: "Login successful!!!",
@@ -73,11 +77,13 @@ authRouter.post("/login", async (req, res) => {
 });
 
 authRouter.post("/logout", userAuth, async (req, res) => {
+	const isProduction = process.env.NODE_ENV === "production";
 	res
 		.cookie("authToken", "", {
 			expires: new Date(0),
 			httpOnly: true,
-			sameSite: "lax",
+			sameSite: isProduction ? "none" : "lax",
+			secure: isProduction,
 		})
 		.status(200)
 		.send("user loggedout");
