@@ -10,6 +10,11 @@ export const paymentRouter = express.Router();
 
 paymentRouter.post("/payment/create", userAuth, async (req, res) => {
 	try {
+		if (!razorpay) {
+			return res.status(503).json({
+				message: "Payment is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.",
+			});
+		}
 		const { amount, membershipType } = req.body;
 		const { firstName, lastName, emailId } = req.user;
 		const options = {
@@ -51,11 +56,15 @@ paymentRouter.post("/payment/create", userAuth, async (req, res) => {
 
 paymentRouter.post("/payment/webhook", async (req, res) => {
 	try {
+		const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+		if (!webhookSecret) {
+			return res.status(503).send("Payment webhook is not configured (RAZORPAY_WEBHOOK_SECRET missing).");
+		}
 		const webHookSignature = req.get("x-razorpay-signature");
 		const isWebHookValid = Razorpay.validateWebhookSignature(
 			JSON.stringify(req.body),
 			webHookSignature,
-			process.env.RAZORPAY_WEBHOOK_SECRET,
+			webhookSecret,
 		);
 
 		if (!isWebHookValid) {
