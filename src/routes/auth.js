@@ -6,7 +6,7 @@ import { validateSignUpData } from "../utils/validations";
 
 export const authRouter = express.Router();
 
-authRouter.post("/singup", async (req, res) => {
+const handleSignup = async (req, res) => {
 	try {
 		// validation the data
 		validateSignUpData(req);
@@ -40,7 +40,10 @@ authRouter.post("/singup", async (req, res) => {
 			message: `Error in adding user: ${error.message}`,
 		});
 	}
-});
+};
+
+authRouter.post("/singup", handleSignup);
+authRouter.post("/signup", handleSignup);
 authRouter.post("/login", async (req, res) => {
 	try {
 		const { emailId, password } = req.body;

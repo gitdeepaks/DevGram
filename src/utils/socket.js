@@ -32,14 +32,31 @@ export const initializeSocket = (server) => {
 			async ({ firstName, lastName, text, fromUserId, toUserId }) => {
 				const room = getChatRoomId(fromUserId, toUserId);
 
-				ConnectionRequestModel.findOne({
-					$or: [
-						{ fromUserId, toUserId, status: "accepted" },
-						{ fromUserId: toUserId, toUserId: fromUserId, status: "accepted" },
-					],
-				});
+				if (!room || !fromUserId || !toUserId || !text?.trim()) {
+					return;
+				}
 
 				try {
+					const connection = await ConnectionRequestModel.findOne({
+						$or: [
+							{ fromUserId, toUserId, status: "accepted" },
+							{
+								fromUserId: toUserId,
+								toUserId: fromUserId,
+								status: "accepted",
+							},
+						],
+					});
+
+					if (!connection) {
+						console.warn(
+							"Blocked chat message between non-connected users",
+							fromUserId,
+							toUserId,
+						);
+						return;
+					}
+
 					let chat = await ChatModel.findOne({
 						participants: { $all: [fromUserId, toUserId] },
 					});
@@ -56,18 +73,18 @@ export const initializeSocket = (server) => {
 					});
 
 					await chat.save();
+
+					// send only to the other participant(s), not back to sender
+					socket.to(room).emit("receiveMessage", {
+						firstName,
+						lastName,
+						text,
+						fromUserId,
+						toUserId,
+					});
 				} catch (error) {
 					console.error("Error sending message", error);
 				}
-				if (!room) return;
-				// send only to the other participant(s), not back to sender
-				socket.to(room).emit("receiveMessage", {
-					firstName,
-					lastName,
-					text,
-					fromUserId,
-					toUserId,
-				});
 			},
 		);
 
