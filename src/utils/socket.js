@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import { ChatModel } from "../models/chat";
+import { ConnectionRequestModel } from "../models/connectionRequest.model";
 
 const getChatRoomId = (userIdA, userIdB) => {
 	if (!userIdA || !userIdB) return null;
@@ -9,7 +10,11 @@ const getChatRoomId = (userIdA, userIdB) => {
 export const initializeSocket = (server) => {
 	const io = new Server(server, {
 		cors: {
-			origin: ["http://localhost:5173", "https://www.devfinderapp.com/"],
+			origin: [
+				"http://localhost:5173",
+				"https://www.devfinderapp.com",
+				"https://devfinderapp.com",
+			],
 			credentials: true,
 		},
 	});
@@ -26,6 +31,13 @@ export const initializeSocket = (server) => {
 			"sendMessage",
 			async ({ firstName, lastName, text, fromUserId, toUserId }) => {
 				const room = getChatRoomId(fromUserId, toUserId);
+
+				ConnectionRequestModel.findOne({
+					$or: [
+						{ fromUserId, toUserId, status: "accepted" },
+						{ fromUserId: toUserId, toUserId: fromUserId, status: "accepted" },
+					],
+				});
 
 				try {
 					let chat = await ChatModel.findOne({
