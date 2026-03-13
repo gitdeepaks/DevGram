@@ -1,19 +1,24 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import http from "http";
 import { connectDB } from "./config/database.js";
 import { authRouter } from "./routes/auth.js";
+import { chatRouter } from "./routes/chat.js";
 import { paymentRouter } from "./routes/paymant.js";
 import { profileRouter } from "./routes/profile.js";
 import { requestRouter } from "./routes/request.js";
 import { userRouter } from "./routes/user.js";
+import { initializeSocket } from "./utils/socket.js";
 
 const app = express();
 
 // CORS: localhost for dev; set ALLOWED_ORIGINS in Railway to your Vercel URL (comma-separated for multiple)
 const defaultOrigins = ["http://localhost:5173", "http://localhost:5174"];
 const allowedFromEnv = process.env.ALLOWED_ORIGINS
-	? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean)
+	? process.env.ALLOWED_ORIGINS.split(",")
+			.map((s) => s.trim())
+			.filter(Boolean)
 	: [];
 const corsOrigins = [...defaultOrigins, ...allowedFromEnv];
 
@@ -23,7 +28,7 @@ app.use(
 		credentials: true,
 		methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
 		allowedHeaders: ["Content-Type", "Authorization"],
-	})
+	}),
 );
 
 // cronJob.start();
@@ -36,12 +41,19 @@ app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
 app.use("/", paymentRouter);
+app.use("/", chatRouter);
+
+const server = http.createServer(app);
+
+initializeSocket(server);
+
 connectDB()
 	.then(() => {
 		console.log("Datebase connected....");
 		const PORT = process.env.PORT || 4100;
-		app.listen(PORT, () => {
+		server.listen(PORT, () => {
 			console.log(`server is running on port:${PORT}`);
+			console.log("socket is running");
 		});
 	})
 	.catch((err) => console.error(`Database cannot connected: ${err.message}`));
